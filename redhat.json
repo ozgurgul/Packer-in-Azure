@@ -1,0 +1,50 @@
+{
+  "builders": [{
+    "type": "azure-arm",
+
+    "client_id": "XXXXXXXX",
+    "client_secret": "XXXXXXXX",
+    "tenant_id": "XXXXXXXX",
+    "subscription_id": "XXXXXXXX",
+
+    "managed_image_resource_group_name": "myResourceGroup",
+    "managed_image_name": "myPackerImage",
+
+    "os_type": "Linux",
+    "image_publisher": "RedHat",
+    "image_offer": "RHEL",
+    "image_sku": "9.2",
+
+    "azure_tags": {
+        "dept": "Engineering",
+        "task": "Image deployment"
+    },
+
+    "location": "East US",
+    "vm_size": "Standard_DS2_v2"
+  }],
+  "provisioners": [
+    {
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+      "inline": [
+        "sudo yum update",
+        "sudo yum install –f ansible",
+       ],
+      "inline_shebang": "/bin/sh -x",
+      "type": "shell"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "{{user `playbook_drop_path`}}/ansible/site.yml",
+      "playbook_dir": "{{user `playbook_drop_path`}}/ansible"
+    },
+    {
+    "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+    "inline": [
+      "/usr/sbin/waagent -force -deprovision+user &amp;&amp; export HISTSIZE=0 &amp;&amp; sync"
+    ],
+    "inline_shebang": "/bin/sh -x",
+    "type": "shell"
+    }
+  ]
+}
